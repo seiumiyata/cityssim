@@ -1,0 +1,340 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>都市運営シミュレーション</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      margin: 0;
+      padding: 20px;
+    }
+    h1 {
+      text-align: center;
+    }
+    .container {
+      display: flex;
+    }
+    .status {
+      flex: 1;
+      margin-right: 20px;
+    }
+    .actions {
+      flex: 1;
+    }
+    button {
+      display: block;
+      width: 100%;
+      padding: 10px;
+      margin-bottom: 10px;
+    }
+    .screen {
+      display: none;
+      text-align: center;
+    }
+  </style>
+</head>
+<body>
+  <div id="openingScreen" class="screen">
+    <h1>都市運営シミュレーション</h1>
+    <button onclick="startGame()">ゲームスタート</button>
+  </div>
+
+  <div id="gameScreen" class="screen">
+    <h1 id="cityName"></h1>
+    <div class="container">
+      <div class="status">
+        <p>ターン: <span id="month">1</span>ヶ月</p>
+        <p>人口: <span id="population">50,000</span>人</p>
+        <p>予算: <span id="budget">10,000</span>万円</p>
+        <p>予定歳入額: <span id="estimatedRevenue">0</span>万円</p>
+        <p>支持率: <span id="supportRate">50</span>%</p>
+        <p>治安: <span id="security">50</span>%</p>
+        <p>商業度: <span id="commerce">50</span>%</p>
+        <p>工業度: <span id="industry">50</span>%</p>
+        <p>発展度: <span id="development">50</span>%</p>
+      </div>
+      <div class="actions">
+        <button onclick="attractCommercialDistrict()">商業地区誘致(1,500万円)</button>
+        <button onclick="attractIndustrialDistrict()">工業地区誘致(3,000万円)</button>
+        <button onclick="maintainSecurity()">治安維持活動(800万円)</button>
+        <button onclick="provideCitizenServices()">市民へサービス(1,200万円)</button>
+        <button onclick="promoteCityMarketing()">都市宣伝活動(1,800万円)</button>
+        <button onclick="advanceTurnWithoutAction()">次の月へ</button>
+        <button onclick="saveGame()">ゲームを保存</button>
+        <button onclick="loadGame()">ゲームを読み込む</button>
+      </div>
+    </div>
+  </div>
+
+  <div id="endingScreen" class="screen">
+    <h1>ゲーム終了</h1>
+    <p>あなたのスコア: <span id="finalScore"></span>点</p>
+    <button onclick="showHighScores()">ハイスコアを表示</button>
+    <button onclick="restartGame()">もう一度プレイ</button>
+  </div>
+
+  <script>
+    const bankruptCities = ["夕張市", "赤平市", "歌志内市", "深川市", "士別市"];
+
+    // ゲームの状態を管理するオブジェクト
+    let gameState = {
+      month: 1,
+      population: 50000,
+      budget: 10000,
+      estimatedRevenue: 0,
+      supportRate: 50,
+      security: 50,
+      commerce: 50,
+      industry: 50,
+      development: 50
+    };
+
+    // ゲームの初期化関数
+    function initGame() {
+      document.getElementById("openingScreen").style.display = "block";
+      document.getElementById("gameScreen").style.display = "none";
+      document.getElementById("endingScreen").style.display = "none";
+    }
+
+    // ゲームスタート関数
+    function startGame() {
+      document.getElementById("openingScreen").style.display = "none";
+      document.getElementById("gameScreen").style.display = "block";
+      setCityName();
+      updateDisplay();
+    }
+
+    // 都市の名前を設定する関数
+    function setCityName() {
+      const cityName = prompt("都市の名前を入力してください。");
+      if (cityName) {
+        document.getElementById("cityName").textContent = cityName;
+      } else {
+        const randomIndex = Math.floor(Math.random() * bankruptCities.length);
+        document.getElementById("cityName").textContent = bankruptCities[randomIndex];
+      }
+    }
+
+    // 画面の表示を更新する関数
+    function updateDisplay() {
+      document.getElementById('month').textContent = gameState.month;
+      document.getElementById('population').textContent = gameState.population.toLocaleString();
+      document.getElementById('budget').textContent = gameState.budget.toLocaleString();
+      document.getElementById('estimatedRevenue').textContent = gameState.estimatedRevenue.toLocaleString();
+      document.getElementById('supportRate').textContent = gameState.supportRate;
+      document.getElementById('security').textContent = gameState.security;
+      document.getElementById('commerce').textContent = gameState.commerce;
+      document.getElementById('industry').textContent = gameState.industry;
+      document.getElementById('development').textContent = gameState.development;
+    }
+
+    // 商業地区を誘致する関数
+    function attractCommercialDistrict() {
+      if (gameState.budget >= 1500) {
+        gameState.budget -= 1500;
+        const increaseAmount = Math.floor(Math.random() * 3) + 2;
+        gameState.commerce = Math.min(gameState.commerce + increaseAmount, 100);
+        gameState.security = Math.max(gameState.security - Math.floor(Math.random() * 2), 0);
+        advanceTurn();
+      }
+    }
+
+    // 工業地区を誘致する関数
+    function attractIndustrialDistrict() {
+      if (gameState.budget >= 3000) {
+        gameState.budget -= 3000;
+        const increaseAmount = Math.floor(Math.random() * 4) + 3;
+        gameState.industry = Math.min(gameState.industry + increaseAmount, 100);
+        gameState.security = Math.max(gameState.security - Math.floor(Math.random() * 3), 0);
+        advanceTurn();
+      }
+    }
+
+    // 治安維持活動を行う関数
+    function maintainSecurity() {
+      if (gameState.budget >= 800) {
+        gameState.budget -= 800;
+        const increaseAmount = Math.floor(Math.random() * 3) + 2;
+        gameState.security = Math.min(gameState.security + increaseAmount, 100);
+        advanceTurn();
+      }
+    }
+
+    // 市民へのサービスを提供する関数
+    function provideCitizenServices() {
+      if (gameState.budget >= 1200) {
+        gameState.budget -= 1200;
+        const supportRateIncrease = Math.floor(Math.random() * 2) + 1;
+        const developmentIncrease = Math.floor(Math.random() * 2) + 1;
+        gameState.supportRate = Math.min(gameState.supportRate + supportRateIncrease, 100);
+        gameState.development = Math.min(gameState.development + developmentIncrease, 100);
+        advanceTurn();
+      }
+    }
+
+    // 都市宣伝活動を行う関数
+    function promoteCityMarketing() {
+      if (gameState.budget >= 1800) {
+        gameState.budget -= 1800;
+        const populationIncrease = Math.floor(Math.random() * 1000) + 500;
+        const supportRateIncrease = Math.floor(Math.random() * 3) + 1;
+        gameState.population += populationIncrease;
+        gameState.supportRate = Math.min(gameState.supportRate + supportRateIncrease, 100);
+        advanceTurn();
+      }
+    }
+
+    // 何もせずに次の月へ進む関数
+    function advanceTurnWithoutAction() {
+      advanceTurn();
+    }
+
+    // ターン進行時の処理
+    function advanceTurn() {
+      gameState.month++;
+      calculatePopulationChange();
+      calculateRevenue();
+      updateRandomEvent();
+      if (isGameOver()) {
+        endGame();
+      } else {
+        updateDisplay();
+      }
+    }
+
+    // 人口増減の計算
+    function calculatePopulationChange() {
+      const populationChange = Math.floor(gameState.population * (gameState.supportRate - 40) / 1000);
+      gameState.population += populationChange;
+    }
+
+    // 歳入の計算
+    function calculateRevenue() {
+      const revenuePerCapita = gameState.development * 0.25;
+      gameState.estimatedRevenue = Math.floor(gameState.population * revenuePerCapita / 100);
+      if (gameState.month % 12 === 0) {
+        gameState.budget += gameState.estimatedRevenue;
+      }
+    }
+
+    // ランダムイベントの更新
+    function updateRandomEvent() {
+      const eventProbability = Math.random();
+      if (eventProbability < 0.02) {
+        // 2%の確率で強制徴収イベント発生
+        const collectedTax = Math.floor(gameState.population * 0.5);
+        gameState.budget += collectedTax;
+        gameState.supportRate = Math.max(gameState.supportRate - 15, 0);
+        alert("強制徴収を行いました。予算が" + collectedTax.toLocaleString() + "万円増加しましたが、支持率が15%下がりました。");
+      } else if (eventProbability < 0.10) {
+        // 8%の確率で特定企業誘致イベント発生
+        const companyType = Math.random() < 0.5 ? "商業" : "工業";
+        const increaseAmount = Math.floor(Math.random() * 5) + 3;
+        gameState[companyType === "商業" ? "commerce" : "industry"] = Math.min(gameState[companyType === "商業" ? "commerce" : "industry"] + increaseAmount, 100);
+        alert(companyType + "企業の誘致に成功しました。" + companyType + "度が" + increaseAmount + "%上昇しました。");
+      } else if (eventProbability < 0.14) {
+        // 4%の確率でテレビ出演イベント発生
+        const successProbability = Math.random();
+        if (successProbability < 0.6) {
+          const supportRateIncrease = Math.floor(Math.random() * 3) + 1;
+          const developmentIncrease = Math.floor(Math.random() * 2) + 1;
+          gameState.supportRate = Math.min(gameState.supportRate + supportRateIncrease, 100);
+          gameState.development = Math.min(gameState.development + developmentIncrease, 100);
+          alert("テレビ出演が好評でした。支持率が" + supportRateIncrease + "%、発展度が" + developmentIncrease + "%上昇しました。");
+        } else {
+          const supportRateDecrease = Math.floor(Math.random() * 3) + 1;
+          const developmentDecrease = Math.floor(Math.random() * 2) + 1;
+          gameState.supportRate = Math.max(gameState.supportRate - supportRateDecrease, 0);
+          gameState.development = Math.max(gameState.development - developmentDecrease, 0);
+          alert("テレビ出演が悪評でした。支持率が" + supportRateDecrease + "%、発展度が" + developmentDecrease + "%下がりました。");
+        }
+      }
+    }
+
+    // ゲームの終了条件の判定
+    function isGameOver() {
+      return gameState.month > 48;
+    }
+
+    // ゲームの終了処理
+    function endGame() {
+      const score = calculateScore();
+      document.getElementById("finalScore").textContent = score;
+      document.getElementById("gameScreen").style.display = "none";
+      document.getElementById("endingScreen").style.display = "block";
+      saveHighScore(score);
+    }
+
+    // スコアの計算
+    function calculateScore() {
+      const populationScore = gameState.population / 1000;
+      const budgetScore = gameState.budget / 1000;
+      const supportRateScore = gameState.supportRate;
+      const securityScore = gameState.security;
+      const commerceScore = gameState.commerce;
+      const industryScore = gameState.industry;
+      const developmentScore = gameState.development;
+
+      const totalScore = populationScore + budgetScore + supportRateScore + securityScore + commerceScore + industryScore + developmentScore;
+      return Math.floor(totalScore);
+    }
+
+    // ゲームの状態を保存する関数
+    function saveGame() {
+      localStorage.setItem("citySimulationGame", JSON.stringify(gameState));
+      alert("ゲームを保存しました。");
+    }
+
+    // ゲームの状態を読み込む関数
+    function loadGame() {
+      const savedState = localStorage.getItem("citySimulationGame");
+      if (savedState) {
+        gameState = JSON.parse(savedState);
+        updateDisplay();
+        alert("ゲームを読み込みました。");
+      } else {
+        alert("保存されたゲームがありません。");
+      }
+    }
+
+    // ハイスコアを保存する関数
+    function saveHighScore(score) {
+      const highScores = JSON.parse(localStorage.getItem("citySimulationHighScores")) || [];
+      highScores.push(score);
+      highScores.sort((a, b) => b - a);
+      highScores.splice(10);
+      localStorage.setItem("citySimulationHighScores", JSON.stringify(highScores));
+    }
+
+    // ハイスコアを表示する関数
+    function showHighScores() {
+      const highScores = JSON.parse(localStorage.getItem("citySimulationHighScores")) || [];
+      let highScoreList = "ハイスコア:\n";
+      for (let i = 0; i < highScores.length; i++) {
+        highScoreList += `${i + 1}. ${highScores[i]}点\n`;
+      }
+      alert(highScoreList);
+    }
+
+    // ゲームを再スタートする関数
+    function restartGame() {
+      gameState = {
+        month: 1,
+        population: 50000,
+        budget: 10000,
+        estimatedRevenue: 0,
+        supportRate: 50,
+        security: 50,
+        commerce: 50,
+        industry: 50,
+        development: 50
+        };
+        document.getElementById("endingScreen").style.display = "none";
+        startGame();
+        }
+        // ゲームの初期化
+        initGame();
+        
+    </script>
+</body>
+</html>
